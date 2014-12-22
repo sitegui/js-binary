@@ -1,0 +1,30 @@
+{
+	"name": "js-binary",
+	"version": "1.0.0",
+	"author": "Sitegui <sitegui@sitegui.com.br>",
+	"description": "Encode/decode to a custom binary format, much more compact and faster than JSON/BSON",
+	"main": "./index.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sitegui/js-binary"
+	},
+	"keywords": [
+		"binary",
+		"parse",
+		"encode",
+		"decode",
+		"json"
+	],
+	"dependencies": {},
+	"license": "MIT",
+	"engines": {
+		"node": ">=0.10"
+	},
+	"scripts": {
+		"test": "mocha test"
+	},
+	"devDependencies": {
+		"mocha": "^2.0.1",
+		"should": "^4.4.1"
+	}
+}
