@@ -86,7 +86,7 @@ Decode
 * 'oid': mongodb ObjectId (see bellow)
 
 ### Compound types
-A compound type is an object with (optional) fields. Those fields may be arrays, but with the restriction that every element has the same data scheme.
+A compound type is an object with (optional) fields. Those fields may be arrays, but with the restriction that every element has the same data schema.
 
 Examples:
 
@@ -94,6 +94,14 @@ Examples:
 * Optional fields: `{a: 'int', 'b?': 'int', 'c?': {d: 'int'}}`
 * Array fields: `{a: ['int']}`
 * All together now: `{'a?': [{'b?': 'int'}]}`
+
+### Array type
+An array type in which every element has the same data schema.
+
+Examples:
+
+* Int array: `['int']`
+* Object array: `[{v: 'int', f: 'string'}]`
 
 ### JSON type
 As stated before, the js-binary requires the data to have a rather strict schema. But sometimes, part of the data may not fit this reality. In this case, you can fallback to JSON :)

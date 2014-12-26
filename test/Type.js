@@ -2,7 +2,6 @@
 'use strict'
 
 var Type = require('../lib/Type'),
-	ReadState = require('../lib/ReadState'),
 	should = require('should'),
 	assert = require('assert')
 
@@ -18,35 +17,35 @@ describe('Type', function () {
 			}]
 		})
 
-		// should().eql() was also checking prototype here...
 		assert.deepEqual(myType, {
-			type: Type.OBJECT,
+			__proto__: Type.prototype,
+			type: Type.TYPE.OBJECT,
 			fields: [{
 				name: 'a',
 				optional: false,
 				array: false,
 				type: {
-					type: Type.INT
+					type: Type.TYPE.INT
 				}
 			}, {
 				name: 'b',
 				optional: false,
 				array: true,
 				type: {
-					type: Type.INT
+					type: Type.TYPE.INT
 				}
 			}, {
 				name: 'c',
 				optional: false,
 				array: true,
 				type: {
-					type: Type.OBJECT,
+					type: Type.TYPE.OBJECT,
 					fields: [{
 						name: 'd',
 						optional: true,
 						array: false,
 						type: {
-							type: Type.STRING
+							type: Type.TYPE.STRING
 						}
 					}]
 				}
@@ -56,11 +55,11 @@ describe('Type', function () {
 
 	it('should not encode a non conforming object', function () {
 		should(function () {
-			myType.writeIntoBuffer(12)
+			myType.encode(12)
 		}).throw()
 
 		should(function () {
-			myType.writeIntoBuffer({
+			myType.encode({
 				a: 17,
 				b: [],
 				c: [{
@@ -82,11 +81,11 @@ describe('Type', function () {
 		encoded
 
 	it('should encode a conforming object', function () {
-		encoded = myType.writeIntoBuffer(obj)
+		encoded = myType.encode(obj)
 	})
 
 	it('should read back the data', function () {
-		myType.read(new ReadState(encoded)).should.be.eql({
+		myType.decode(encoded).should.be.eql({
 			a: 22,
 			b: [-3, 14, -15, 92, -65, 35],
 			c: [{
@@ -97,5 +96,26 @@ describe('Type', function () {
 				d: '?'
 			}]
 		})
+	})
+	
+	it('should encode an array', function () {
+		var intArray = new Type(['int'])
+		intArray.decode(intArray.encode([])).should.be.eql([])
+		intArray.decode(intArray.encode([3])).should.be.eql([3])
+		intArray.decode(intArray.encode([3, 14, 15])).should.be.eql([3, 14, 15])
+		
+		var objArray = new Type([{
+			v: 'int',
+			f: 'string'
+		}])
+		objArray.decode(objArray.encode([])).should.be.eql([])
+		var data = [{
+			v: 1,
+			f: 'one'
+		}, {
+			v: 2,
+			f: 'two'
+		}]
+		objArray.decode(objArray.encode(data)).should.be.eql(data)
 	})
 })

@@ -1,6 +1,6 @@
 {
 	"name": "js-binary",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"author": "Sitegui <sitegui@sitegui.com.br>",
 	"description": "Encode/decode to a custom binary format, much more compact and faster than JSON/BSON",
 	"main": "./index.js",
@@ -21,10 +21,12 @@
 		"node": ">=0.10"
 	},
 	"scripts": {
-		"test": "mocha test"
+		"test": "mocha test",
+		"docs": "jsdoc -d docs -c docs.json lib && jsdoc -p -d docs_private -c docs.json lib"
 	},
 	"devDependencies": {
-		"mocha": "^2.0.1",
+		"jsdoc": "^3.3.0-alpha13",
+		"mocha": "^2.1.0",
 		"should": "^4.4.1"
 	}
 }

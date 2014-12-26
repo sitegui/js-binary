@@ -1,0 +1,10 @@
+{
+	"tags": {},
+	"source": {},
+	"plugins": [
+		"plugins/markdown"
+	],
+	"markdown": {
+		"parser": "gfm"
+	}
+}
