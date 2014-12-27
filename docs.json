@@ -1,6 +1,7 @@
 {
-	"tags": {},
-	"source": {},
+	"source": {
+		"include": ["index.js", "lib"]
+	},
 	"plugins": [
 		"plugins/markdown"
 	],

@@ -22,7 +22,7 @@
 	},
 	"scripts": {
 		"test": "mocha test",
-		"docs": "jsdoc -d docs -c docs.json lib && jsdoc -p -d docs_private -c docs.json lib"
+		"docs": "jsdoc -d docs -c docs.json -R README.md"
 	},
 	"devDependencies": {
 		"jsdoc": "^3.3.0-alpha13",
