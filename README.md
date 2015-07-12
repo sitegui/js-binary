@@ -56,20 +56,20 @@ A quick example:
 
 On average, a 2x to 3x space reduction can be observed.
 
-In the `benchmark` you can find another test with more data. In my machine, this is the result:
+In the `benchmark` you can find another test with more data. In my machine with node 0.12.7, this is the result:
 ```
 Encode
         JSON
-                Time: 5.539ms
+                Time: 1.989ms
                 Size: 190KiB
         js-binary
-                Time: 2.833ms (-49%)
+                Time: 2.198ms (11%)
                 Size: 51KiB (3.7x less)
 Decode
         JSON
-                Time: 2.225ms
+                Time: 2.829ms
         js-binary
-                Time: 1.373ms (-38%)
+                Time: 0.462ms (-84%)
 ```
 
 ## Available types
