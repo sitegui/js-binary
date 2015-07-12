@@ -101,7 +101,7 @@ function write(type, value) {
 function read(hexStr, type) {
 	var state = new ReadState(new Buffer(hexStr, 'hex')),
 		r = type.read(state)
-	state.hasEnded().should.be.true
+	state.hasEnded().should.be.true()
 	return r
 }
 
