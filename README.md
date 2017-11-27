@@ -1,4 +1,8 @@
 # JS Binary
+[![Build Status](https://travis-ci.org/sitegui/js-binary.svg?branch=master)](https://travis-ci.org/sitegui/js-binary)
+[![Inline docs](https://inch-ci.org/github/sitegui/js-binary.svg?branch=master)](https://inch-ci.org/github/sitegui/js-binary)
+[![Dependency Status](https://david-dm.org/sitegui/js-binary.svg)](https://david-dm.org/sitegui/js-binary)
+
 Encode/decode to a custom binary format, much more compact and faster than JSON/BSON
 
 ## Install
