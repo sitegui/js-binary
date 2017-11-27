@@ -2,7 +2,7 @@
 Encode/decode to a custom binary format, much more compact and faster than JSON/BSON
 
 ## Install
-`npm install js-binary --save`
+`npm install js-binary`
 
 ## Goal
 This module is analogous to `JSON.stringify` and `JSON.parse`, but instead of a JSON string, the data is encoded to a custom binary format (using a Buffer instance to store the data).
@@ -56,20 +56,20 @@ A quick example:
 
 On average, a 2x to 3x space reduction can be observed.
 
-In the `benchmark` you can find another test with more data. In my machine with node 0.12.7, this is the result:
+In the `benchmark` you can find another test with more data. In my machine with node 8.9.0, this is the result:
 ```
 Encode
         JSON
-                Time: 1.989ms
+                Time: 2.47ms
                 Size: 190KiB
         js-binary
-                Time: 2.198ms (11%)
+                Time: 1.453ms (-41%)
                 Size: 51KiB (3.7x less)
 Decode
         JSON
-                Time: 2.829ms
+                Time: 2.791ms
         js-binary
-                Time: 0.462ms (-84%)
+                Time: 0.497ms (-82%)
 ```
 
 ## Available types
