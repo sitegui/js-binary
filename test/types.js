@@ -45,8 +45,8 @@ describe('types', function () {
 	})
 
 	it('should be sound for Buffer', function () {
-		check(types.Buffer, new Buffer([]))
-		check(types.Buffer, new Buffer([3, 14, 15, 92, 65, 35]))
+		check(types.Buffer, Buffer.from([]))
+		check(types.Buffer, Buffer.from([3, 14, 15, 92, 65, 35]))
 	})
 
 	it('should be sound for boolean', function () {
@@ -99,7 +99,7 @@ function write(type, value) {
  * @return {*}
  */
 function read(hexStr, type) {
-	var state = new ReadState(new Buffer(hexStr, 'hex')),
+	var state = new ReadState(Buffer.from(hexStr, 'hex')),
 		r = type.read(state)
 	state.hasEnded().should.be.true()
 	return r
