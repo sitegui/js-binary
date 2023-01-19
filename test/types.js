@@ -38,6 +38,17 @@ describe('types', function () {
 		check(types.float, NaN)
 	})
 
+	it('should be sound for float32', function () {
+		check(types.float32, 0)
+		check(types.float32, 0.5)
+		check(types.float32, 1)
+		check(types.float32, Infinity)
+		check(types.float32, -Infinity)
+		check(types.float32, 1 / Infinity)
+		check(types.float32, -1 / Infinity)
+		check(types.float32, NaN)
+	})
+
 	it('should be sound for string', function () {
 		check(types.string, '')
 		check(types.string, 'Hello World')
