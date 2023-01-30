@@ -6,7 +6,7 @@ Everything uses big-endian
 
 ## Basic types
 
-### uint
+### `uint`
 An unsigned integer, stored in a variable number of bytes, depending on its value. This behavior lets small values (like `17`) fit in one byte and, at the same time, give support to (almost) 64 bits integers. Another advantage is that the user doesn't need to care about fixing the field size.
 
 The down-sides of this design are:
@@ -25,7 +25,7 @@ The first matching rule from the list bellow should be used. This means, for exa
 `111x xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx`
 * Any other value should be treated as an error
 
-### int
+### `int`
 A signed integer, store in a variable number of bytes.
 
 The first matching rule from the list bellow should be used. This means, for example, encoding `0` with 16 bits is invalid.
@@ -40,26 +40,29 @@ The first matching rule from the list bellow should be used. This means, for exa
 `111x xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx`
 * Any other value should be treated as an error
 
-### float
+### `float32`
+A 32-bit floating point, as spec'ed in IEEE 754
+
+### `float64`
 A 64-bit floating point, many times referred to as `double`, as spec'ed in IEEE 754
 
 ### string
 An unicode text string. It should be first converted into bytes (as spec'ed by UTF-8) and then encoded as `Buffer` (see bellow)
 
-### Buffer
+### `Buffer`
 A sequence of octets (bytes). First, the Buffer length (in bytes), `len`, is encoded as `uint` (see above) and appended to the result. After that, `len` bytes follow (the Buffer content):
 `<uint_length> <buffer_data>`
 
-### boolean
+### `boolean`
 Either `true`, encoded as the byte `0x01`, or `false`, encoded as `0x00`.
 
-### json
+### `json`
 Any JSON-compatible data. First the value is transformed in string by a JSON serialization algorithm (like `JSON.stringify`). The resulting string is the encoded as a `string` (see above).
 
-### oid
+### `oid`
 A mongodb ObjectId, composed of 12 bytes. No encoding is actually needed, the 12 bytes are simply appended to the final result.
 
-### regex
+### `regex`
 A JS-compatible regular expression, composed of:
 
 * `source`: the regex source as a string (as returned by the `source` property in a `RegExp` instance);
@@ -67,7 +70,7 @@ A JS-compatible regular expression, composed of:
 
 First, the `source` is encoded as a `string`. After that, is appended the flag byte. The flag byte is a bit-mask: `0000 0mig`.
 
-### date
+### `date`
 A date value, represented by a UNIX timestamp in milliseconds, encoded as a `uint`.
 
 ## Compound type

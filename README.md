@@ -1,12 +1,11 @@
-# JS Binary
-[![Build Status](https://travis-ci.org/sitegui/js-binary.svg?branch=master)](https://travis-ci.org/sitegui/js-binary)
-[![Inline docs](https://inch-ci.org/github/sitegui/js-binary.svg?branch=master)](https://inch-ci.org/github/sitegui/js-binary)
-[![Dependency Status](https://david-dm.org/sitegui/js-binary.svg)](https://david-dm.org/sitegui/js-binary)
+# TypeScript Binary
 
-Encode/decode to a custom binary format, much more compact and faster than JSON/BSON
+Fork of [sitegui/js-binary](https://github.com/sitegui/js-binary) updated to TypeScript, and with new types.
+
+> Encode/decode to a custom binary format, much more compact and faster than JSON/BSON.
 
 ## Install
-`npm install js-binary`
+`npm install typescript-binary`
 
 ## Goal
 This module is analogous to `JSON.stringify` and `JSON.parse`, but instead of a JSON string, the data is encoded to a custom binary format (using a Buffer instance to store the data).
@@ -18,19 +17,20 @@ Note that, since it's a binary format, it was not meant to be easily viewed/edit
 
 ## Usage
 ```js
-var user = {
+const user = {
 	name: {
 		first: 'Guilherme',
 		last: 'Souza'
 	},
-	pass: new Buffer('042697a30b2dafbdf91bf66bdacdcba8', 'hex'),
+	pass: Buffer.from('042697a30b2dafbdf91bf66bdacdcba8', 'hex'),
 	creationDate: new Date('2014-04-11T21:22:32.504Z'),
 	active: true,
 	achievements: [3, 14, 15, 92, 65, 35]
 }
 
-var Type = require('js-binary').Type
-var schema = new Type({
+import { Schema } from 'typescript-binary';
+
+const UserSchema = new Schema({
 	name: {
 		first: 'string',
 		last: 'string'
@@ -38,49 +38,20 @@ var schema = new Type({
 	pass: 'Buffer',
 	creationDate: 'date',
 	active: 'boolean',
-	achievements: ['uint'],
-	'optionalField?': 'int'
-})
+	achievements: ['uint'], // array of unsigned ints
+	'optionalField?': 'int',
+});
 
-var encoded = schema.encode(user)
-
-var decoded = schema.decode(encoded)
-```
-
-## Benchmark
-A quick example:
-```json
-{
-	"name": "js-binary",
-	"published": "2014-12-21T23:42:46.558Z",
-	"downloads": 1717
-}
-```
-(76 bytes, without formatting) versus `096a732d62696e617279e000014a6f3b531e86b5` (20 bytes)
-
-On average, a 2x to 3x space reduction can be observed.
-
-In the `benchmark` you can find another test with more data. In my machine with node 8.9.0, this is the result:
-```
-Encode
-        JSON
-                Time: 2.47ms
-                Size: 190KiB
-        js-binary
-                Time: 1.453ms (-41%)
-                Size: 51KiB (3.7x less)
-Decode
-        JSON
-                Time: 2.791ms
-        js-binary
-                Time: 0.497ms (-82%)
+const encoded = UserSchema.encode(user);
+const decoded = UserSchema.decode(encoded);
 ```
 
 ## Available types
 ### Basic types
 * 'uint': unsigned integer (between 0 and 2^53)
 * 'int': signed integer (between -2^53 and 2^53)
-* 'float': a 64-bit floating-point (the JavaScript number type)
+* 'float32': a 32-bit floating-point
+* 'float64': a 64-bit floating-point (the JavaScript `number` type)
 * 'string': a utf-8 string
 * 'Buffer': a Buffer instance
 * 'boolean': a boolean
@@ -115,10 +86,10 @@ Of course, a JSON field will miss the point about space efficiency and data vali
 ### ObjectId type
 js-binary gives first-class support for mongodb ObjectId. But since js-binary doesn't (and shouldn't) depend on any peculiar mongodb driver, the rules for this type are:
 
-* Encoding: any object `o` is accepted, as long `new Buffer(String(o), 'hex')` yields a 12-byte Buffer
+* Encoding: any object `o` is accepted, as long `Buffer.from(String(o), 'hex')` yields a 12-byte Buffer
 * Decoding: returns a 24-char hex-encoded string
 
 This should be compatible with most ObjectId implementations on the wild
 
 ## Spec
-The binary format spec is documented in the format.md file
+The binary format spec is documented in the [FORMAT.md](./FORMAT.md) file
