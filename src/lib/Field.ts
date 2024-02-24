@@ -1,5 +1,5 @@
 import { BinaryCodec } from './BinaryCodec';
-import { CoderType } from './CoderType';
+import { Type } from './Type';
 
 /**
  * Parse and represent an object field. See example in Type.js
@@ -10,7 +10,7 @@ export class Field {
   readonly isOptional: boolean;
   readonly isArray: boolean;
 
-  constructor(name: string, type: CoderType) {
+  constructor(name: string, type: Type) {
     this.isOptional = false
 
     if (name[name.length - 1] === '?') {

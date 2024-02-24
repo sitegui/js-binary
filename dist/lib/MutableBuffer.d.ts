@@ -9,6 +9,9 @@ export declare class MutableBuffer {
     private _length;
     constructor(capacity?: number);
     appendBuffer: (data: Buffer) => void;
+    writeInt8(value: number): void;
+    writeInt16(value: number): void;
+    writeInt32(value: number): void;
     writeUInt8(value: number): void;
     writeUInt16(value: number): void;
     writeUInt32(value: number): void;

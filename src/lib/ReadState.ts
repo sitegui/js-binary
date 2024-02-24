@@ -34,6 +34,22 @@ export class ReadState {
     return r
   }
 
+  public readInt8(): number {
+    return this._buffer.readInt8(this._offset++)
+  }
+
+  public readInt16(): number {
+    var r = this._buffer.readInt16LE(this._offset)
+    this._offset += 2
+    return r
+  }
+
+  public readInt32(): number {
+    var r = this._buffer.readInt32LE(this._offset)
+    this._offset += 4
+    return r
+  }
+
   public readFloat(): number {
     var r = this._buffer.readFloatBE(this._offset)
     this._offset += 4

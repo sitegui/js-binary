@@ -15,6 +15,21 @@ class MutableBuffer {
         };
         this._buffer = Buffer.alloc(capacity);
     }
+    writeInt8(value) {
+        this._alloc(1);
+        this._buffer.writeInt8(value, this._length);
+        this._length++;
+    }
+    writeInt16(value) {
+        this._alloc(2);
+        this._buffer.writeInt16LE(value, this._length);
+        this._length += 2;
+    }
+    writeInt32(value) {
+        this._alloc(4);
+        this._buffer.writeInt32LE(value, this._length);
+        this._length += 4;
+    }
     writeUInt8(value) {
         this._alloc(1);
         this._buffer.writeUInt8(value, this._length);

@@ -1,30 +1,25 @@
 import { MutableBuffer } from './MutableBuffer';
 import { ReadState } from './ReadState';
-import { CoderType } from './CoderType';
+import { Type } from './Type';
 
 /* ---------------------------
  Binary Coder Implementations
  --------------------------- */
 
-// Stores 2^i from i=0 to i=56
-const POW = (function () {
-  var r = [],
-  i, n = 1
-  for (i = 0; i <= 56; i++) {
-    r.push(n)
-    n *= 2
-  }
-  return r
-})()
-
 // Pre-calculated constants
-const MAX_DOUBLE_INT = POW[53],
-  MAX_UINT8 = POW[7],
-  MAX_UINT16 = POW[14],
-  MAX_UINT32 = POW[29],
-  MAX_INT8 = POW[6],
-  MAX_INT16 = POW[13],
-  MAX_INT32 = POW[28];
+const MAX_AUTO_UINT8 = 128,
+  MAX_AUTO_UINT16 = 16_384,
+  MAX_AUTO_UINT32 = 536_870_912,
+  MAX_AUTO_INT8 = 64,
+  MAX_AUTO_INT16 = 8_192,
+  MAX_AUTO_INT32 = 268_435_456,
+  MAX_INT8 = 127,
+  MAX_INT16 = 32_767,
+  MAX_INT32 = 2_147_483_647,
+  MAX_UINT8 = 255,
+  MAX_UINT16 = 65_535,
+  MAX_UINT32 = 4_294_967_295,
+  POW_32 = 4_294_967_296;
 
 export interface BinaryCoder<T> {
   write(u: T, data: MutableBuffer, path?: string): void;
@@ -41,19 +36,19 @@ export interface BinaryCoder<T> {
 export const uintCoder: BinaryCoder<number> = {
   write: function (u, data, path) {
     // Check the input
-    if (Math.round(u) !== u || u > MAX_DOUBLE_INT || u < 0) {
+    if (Math.round(u) !== u || u > Number.MAX_SAFE_INTEGER || u < 0) {
       throw new TypeError('Expected unsigned integer at ' + path + ', got ' + u)
     }
     
-    if (u < MAX_UINT8) {
+    if (u < MAX_AUTO_UINT8) {
       data.writeUInt8(u)
-    } else if (u < MAX_UINT16) {
+    } else if (u < MAX_AUTO_UINT16) {
       data.writeUInt16(u + 0x8000)
-    } else if (u < MAX_UINT32) {
+    } else if (u < MAX_AUTO_UINT32) {
       data.writeUInt32(u + 0xc0000000)
     } else {
       // Split in two 32b uints
-      data.writeUInt32(Math.floor(u / POW[32]) + 0xe0000000)
+      data.writeUInt32(Math.floor(u / POW_32) + 0xe0000000)
       data.writeUInt32(u >>> 0)
     }
   },
@@ -68,8 +63,44 @@ export const uintCoder: BinaryCoder<number> = {
     } else if (!(firstByte & 0x20)) {
       return state.readUInt32() - 0xc0000000
     } else {
-      return (state.readUInt32() - 0xe0000000) * POW[32] + state.readUInt32()
+      return (state.readUInt32() - 0xe0000000) * POW_32 + state.readUInt32()
     }
+  }
+}
+
+export const uint8Coder: BinaryCoder<number> = {
+  write: function (u, data, path) {
+    if (u < 0 || u > MAX_UINT8) {
+      throw new TypeError('Expected unsigned 8-byte integer at ' + path + ', got ' + u)
+    }
+    data.writeUInt8(Math.round(u));
+  },
+  read: function (state) {
+    return state.readUInt8();
+  }
+}
+
+export const uint16Coder: BinaryCoder<number> = {
+  write: function (u, data, path) {
+    if (u < 0 || u > MAX_UINT16) {
+      throw new TypeError('Expected unsigned 16-byte integer at ' + path + ', got ' + u)
+    }
+    data.writeUInt16(Math.round(u));
+  },
+  read: function (state) {
+    return state.readUInt16();
+  }
+}
+
+export const uint32Coder: BinaryCoder<number> = {
+  write: function (u, data, path) {
+    if (u < 0 || u > MAX_UINT32) {
+      throw new TypeError('Expected unsigned 32-byte integer at ' + path + ', got ' + u)
+    }
+    data.writeUInt32(Math.round(u));
+  },
+  read: function (state) {
+    return state.readUInt32();
   }
 }
 
@@ -79,19 +110,19 @@ export const uintCoder: BinaryCoder<number> = {
 export const intCoder: BinaryCoder<number> = {
   write: function (i, data, path) {
     // Check the input
-    if (Math.round(i) !== i || i > MAX_DOUBLE_INT || i < -MAX_DOUBLE_INT) {
+    if (Math.round(i) !== i || i > Number.MAX_SAFE_INTEGER || i < -Number.MAX_SAFE_INTEGER) {
       throw new TypeError('Expected signed integer at ' + path + ', got ' + i)
     }
     
-    if (i >= -MAX_INT8 && i < MAX_INT8) {
+    if (i >= -MAX_AUTO_INT8 && i < MAX_AUTO_INT8) {
       data.writeUInt8(i & 0x7f)
-    } else if (i >= -MAX_INT16 && i < MAX_INT16) {
+    } else if (i >= -MAX_AUTO_INT16 && i < MAX_AUTO_INT16) {
       data.writeUInt16((i & 0x3fff) + 0x8000)
-    } else if (i >= -MAX_INT32 && i < MAX_INT32) {
+    } else if (i >= -MAX_AUTO_INT32 && i < MAX_AUTO_INT32) {
       data.writeUInt32((i & 0x1fffffff) + 0xc0000000)
     } else {
       // Split in two 32b uints
-      data.writeUInt32((Math.floor(i / POW[32]) & 0x1fffffff) + 0xe0000000)
+      data.writeUInt32((Math.floor(i / POW_32) & 0x1fffffff) + 0xe0000000)
       data.writeUInt32(i >>> 0)
     }
   },
@@ -111,10 +142,47 @@ export const intCoder: BinaryCoder<number> = {
     } else {
       i = state.readUInt32() - 0xe0000000
       i = (i & 0x10000000) ? (i | 0xe0000000) : i
-      return i * POW[32] + state.readUInt32()
+      return i * POW_32 + state.readUInt32()
     }
   }
 }
+
+export const int8Coder: BinaryCoder<number> = {
+  write: function (i, data, path) {
+    if (i < -MAX_INT8 || i > MAX_INT8) {
+      throw new TypeError('Expected signed 8-byte integer at ' + path + ', got ' + i)
+    }
+    data.writeInt8(Math.round(i));
+  },
+  read: function (state) {
+    return state.readInt8();
+  }
+}
+
+export const int16Coder: BinaryCoder<number> = {
+  write: function (i, data, path) {
+    if (i < -MAX_INT16 || i > MAX_INT16) {
+      throw new TypeError('Expected signed 16-byte integer at ' + path + ', got ' + i)
+    }
+    data.writeInt16(Math.round(i));
+  },
+  read: function (state) {
+    return state.readInt16();
+  }
+}
+
+export const int32Coder: BinaryCoder<number> = {
+  write: function (i, data, path) {
+    if (i < -MAX_INT32 || i > MAX_INT32) {
+      throw new TypeError('Expected signed 32-byte integer at ' + path + ', got ' + i)
+    }
+    data.writeInt32(Math.round(i));
+  },
+  read: function (state) {
+    return state.readInt32();
+  }
+}
+
 
 /**
  * 64-bit double precision float
@@ -382,28 +450,34 @@ function integerToBooleanArray(int: number): boolean[] {
 /**
  * Helper to get the right coder.
  */
-export function getCoder(type: CoderType): BinaryCoder<any> {
+export function getCoder(type: Type): BinaryCoder<any> {
   switch (type) {
-    case CoderType.BOOLEAN: return booleanCoder;
-    case CoderType.BUFFER: return BufferCoder;
-    case CoderType.DATE: return dateCoder;
-    case CoderType.FLOAT_32: return float32Coder;
-    case CoderType.FLOAT_64: return float64Coder;
-    case CoderType.INT: return intCoder;
-    case CoderType.JSON: return jsonCoder;
-    case CoderType.REGEX: return regexCoder;
-    case CoderType.STRING: return stringCoder;
-    case CoderType.UINT: return uintCoder;
+    case Type.Boolean: return booleanCoder;
+    case Type.Buffer: return BufferCoder;
+    case Type.Date: return dateCoder;
+    case Type.Float: return float32Coder;
+    case Type.Double: return float64Coder;
+    case Type.Int: return intCoder;
+    case Type.Int8: return int8Coder;
+    case Type.Int16: return int16Coder;
+    case Type.Int32: return int32Coder;
+    case Type.RegExp: return regexCoder;
+    case Type.String: return stringCoder;
+    case Type.UInt: return uintCoder;
+    case Type.UInt8: return uint8Coder;
+    case Type.UInt16: return uint16Coder;
+    case Type.UInt32: return uint32Coder;
 
-    case CoderType.BOOLEAN_ARRAY: return booleanArrayCoder;
-    case CoderType.BITMASK_8: return bitmask8Coder;
-    case CoderType.BITMASK_16: return bitmask16Coder;
-    case CoderType.BITMASK_32: return bitmask32Coder;
+    case Type.JSON: return jsonCoder;
+    case Type.BooleanArray: return booleanArrayCoder;
+    case Type.Bitmask8: return bitmask8Coder;
+    case Type.Bitmask16: return bitmask16Coder;
+    case Type.Bitmask32: return bitmask32Coder;
     
-    case CoderType.ARRAY,
-      CoderType.OBJECT:
+    case Type.Array,
+      Type.Object:
       // This should not be possible!
-      throw new Error(`No binary coder exists for data structure type: "${type}"`);
+      throw new Error(`Unexpected raw data structure type: "${type}". Please use array or object syntax instead.`);
     
     default:
       throw new Error(`Unknown binary coder type: "${type}"`);

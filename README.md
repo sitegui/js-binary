@@ -83,40 +83,61 @@ const myUser: MyUserInterface = UserBinaryCodec.decode(myUserBinary);
 
 ## Available types
 ### Primitive types
-* 'boolean': a boolean.
-* 'uint': unsigned integer (between 0 and 2^53). 
-* 'int': signed integer (between -2^53 and 2^53).
-* 'float32': a 32-bit precision floating-point number.
-* 'float64': a 64-bit precision floating-point number (this is typically the default for JavaScript's `number` type).
-* 'string': a UTF-8 encoded string.
+* `Type.UInt`: unsigned integer (between 0 and `Number.MAX_SAFE_INTEGER`),
+* `Type.Int`: signed integer (between `-Number.MAX_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER`).
+* `Type.UInt8`, `Type.UInt16`, `Type.UInt32`: unsigned integers (1, 2 or 4 bytes).
+* `Type.Int8`, `Type.Int16`, `Type.Int32`: signed integers (1, 2 or 4 bytes).
+* `Type.Float`: a 32-bit precision floating-point number.
+* `Type.Double`: a 64-bit precision floating-point number (this is default for JavaScript's `number` type).
+* `Type.String`: a UTF-8 encoded string.
+* `Type.Boolean`: a boolean.
 
-> `uint` and `int` use a custom coder that dynamically chooses the smallest encoding for the given value (e.g. 8-32 bytes).
+> `uint` and `int` use a custom coder that dynamically chooses an encoding for the given value (e.g. 1-8 bytes). See [Type.Int](https://github.com/reececomo/typescript-binary/blob/main/src/lib/Type.ts) for limits.
 
 ### Advanced types
-* 'Buffer': a Buffer instance
-* 'regex': a JavaScript `RegExp` object
-* 'date': a JavaScript `Date` object
-* 'json': Any data supported by [JSON format](http://json.org/). See below for more details.
-* 'booleans': An array of booleans (any length), encoded with a 2-bit header.
-* 'bitmask8', 'bitmask16', and 'bitmask32': A fixed-length tuple of booleans, encoded as a `uint8`, `uint16` or `uint32`.
+* `Type.BooleanArray`: A packed array of booleans (any length), encoded together (you can pack many booleans into one byte).
+* `Type.Buffer`: a Buffer instance
+* `Type.RegExp`: a JavaScript `RegExp` object
+* `Type.Date`: a JavaScript `Date` object
+* `Type.JSON`: Any data supported by [JSON format](http://json.org/). See below for more details.
+* `Type.Bitmask8`, `Type.Bitmask16`, and `Type.Bitmask32`: A fixed-length array of booleans, encoded as a `uint8`, `uint16` or `uint32`.
 
-### Compound types
-A compound type is an object with (optional) fields. Those fields may be arrays, but with the restriction that every element has the same data schema.
+### Objects
+Nested data-types.
 
 Examples:
 
-* Nested fields: `{a: {b: 'int', d: {e: 'int'}}}`
-* Optional fields: `{a: 'int', 'b?': 'int', 'c?': {d: 'int'}}`
-* Array fields: `{a: ['int']}`
-* All together now: `{'a?': [{'b?': 'int'}]}`
+```ts
+profile: {
+  name: Type.String,
+  dateOfBirth: Type.Date
+}
+```
 
-### Array type
+### Arrays
 An array type in which every element has the same data schema.
 
-Examples:
+Example:
 
-* Int array: `['int']`
-* Object array: `[{v: 'int', f: 'string'}]`
+```ts
+names: [Type.String],
+profiles: [{
+  name: Type.String,
+  dateOfBirth: Type.Date
+}]
+```
+
+### Optionals
+Define the names of properties with a `'?'` on the end to mark a field as optional.
+
+Example:
+
+```ts
+{
+  a: Type.String,
+  'b?': [{ 'c?': Type.Int }],
+}
+```
 
 ### JSON type
 As stated before, `typescript-binary` requires the data to have a rather strict schema. But sometimes, part of the data may not fit this reality. In this case, you can fallback to JSON. You will lose the core benefits of binary, but you will gain flexibility.

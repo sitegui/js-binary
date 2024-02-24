@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { MutableBuffer } from './MutableBuffer';
 import { ReadState } from './ReadState';
-import { CoderType } from './CoderType';
+import { Type } from './Type';
 export interface BinaryCoder<T> {
     write(u: T, data: MutableBuffer, path?: string): void;
     read(state: ReadState): T;
@@ -14,10 +14,16 @@ export interface BinaryCoder<T> {
  * 61b  111x xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx  xxxx xxxx
  */
 export declare const uintCoder: BinaryCoder<number>;
+export declare const uint8Coder: BinaryCoder<number>;
+export declare const uint16Coder: BinaryCoder<number>;
+export declare const uint32Coder: BinaryCoder<number>;
 /**
  * Same format as uint
  */
 export declare const intCoder: BinaryCoder<number>;
+export declare const int8Coder: BinaryCoder<number>;
+export declare const int16Coder: BinaryCoder<number>;
+export declare const int32Coder: BinaryCoder<number>;
 /**
  * 64-bit double precision float
  */
@@ -62,5 +68,5 @@ export declare const dateCoder: BinaryCoder<Date>;
 /**
  * Helper to get the right coder.
  */
-export declare function getCoder(type: CoderType): BinaryCoder<any>;
+export declare function getCoder(type: Type): BinaryCoder<any>;
 //# sourceMappingURL=coders.d.ts.map

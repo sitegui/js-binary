@@ -1,6 +1,6 @@
 import {
   BinaryCodec,
-  CoderType,
+  Type,
 } from '../src/index';
 
 describe('BinaryCodec', function () {
@@ -8,7 +8,7 @@ describe('BinaryCodec', function () {
     a: 'int',
     b: ['int'],
     c: [{
-      'd?': 'string'
+      'd?': 'str'
     }]
   });
 
@@ -29,14 +29,14 @@ describe('BinaryCodec', function () {
   it('should correctly parse a type', function () {
     expect(MyBinaryCodec).toEqual({
       __proto__: BinaryCodec.prototype,
-      type: CoderType.OBJECT,
+      type: Type.Object,
       fields: [
         {
           name: 'a',
           isOptional: false,
           isArray: false,
           type: {
-            type: CoderType.INT
+            type: Type.Int
           }
         },
         {
@@ -44,7 +44,7 @@ describe('BinaryCodec', function () {
           isOptional: false,
           isArray: true,
           type: {
-            type: CoderType.INT
+            type: Type.Int
           }
         },
         {
@@ -52,14 +52,14 @@ describe('BinaryCodec', function () {
           isOptional: false,
           isArray: true,
           type: {
-            type: CoderType.OBJECT,
+            type: Type.Object,
             fields: [
               {
                 name: 'd',
                 isOptional: true,
                 isArray: false,
                 type: {
-                  type: CoderType.STRING
+                  type: Type.String
                 }
               }
             ]
@@ -100,7 +100,7 @@ describe('BinaryCodec', function () {
     
     const objArray = new BinaryCodec([{
       v: 'int',
-      f: 'string'
+      f: 'str'
     }])
     expect(objArray.decode(objArray.encode([]))).toEqual([])
     const data = [{
@@ -117,14 +117,14 @@ describe('BinaryCodec', function () {
 
 describe('BOOLEAN_ARRAY', () => {
   const MyCoder = new BinaryCodec({
-    name: CoderType.STRING,
-    coolBools: CoderType.BOOLEAN_ARRAY,
+    name: Type.String,
+    coolBools: Type.BooleanArray,
   });
 
   it('should encode less than 8', () => {
     const before = {
       name: 'my awesome example string',
-      coolBools: [false, true, false, true],
+      coolBools: [false, true, false, true, false],
     };
 
     const encoded = MyCoder.encode(before);
@@ -132,7 +132,7 @@ describe('BOOLEAN_ARRAY', () => {
     const after = MyCoder.decode(encoded);
     expect(after).toStrictEqual({
       name: 'my awesome example string',
-      coolBools: [false, true, false, true],
+      coolBools: [false, true, false, true, false],
     });
     
     expect(before.coolBools.length).toBe(after.coolBools.length);
@@ -171,8 +171,8 @@ describe('BOOLEAN_ARRAY', () => {
 
 describe('BITMASK_8', () => {
   const MyCoder = new BinaryCodec({
-    name: CoderType.STRING,
-    coolBools: CoderType.BITMASK_8,
+    name: Type.String,
+    coolBools: Type.Bitmask8,
   });
 
   it('should encode all booleans below the minimum allowed', () => {
@@ -213,9 +213,9 @@ describe('BITMASK_8', () => {
 
 describe('BITMASK_32', () => {
   const MyCoder = new BinaryCodec({
-    name: CoderType.STRING,
-    coolBools: CoderType.BITMASK_32,
-    other: CoderType.STRING,
+    name: Type.String,
+    coolBools: Type.Bitmask32,
+    other: Type.String,
   });
 
   it('should encode all booleans below the minimum allowed', () => {

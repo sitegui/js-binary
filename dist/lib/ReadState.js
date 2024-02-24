@@ -29,6 +29,19 @@ class ReadState {
         this._offset += 4;
         return r;
     }
+    readInt8() {
+        return this._buffer.readInt8(this._offset++);
+    }
+    readInt16() {
+        var r = this._buffer.readInt16LE(this._offset);
+        this._offset += 2;
+        return r;
+    }
+    readInt32() {
+        var r = this._buffer.readInt32LE(this._offset);
+        this._offset += 4;
+        return r;
+    }
     readFloat() {
         var r = this._buffer.readFloatBE(this._offset);
         this._offset += 4;

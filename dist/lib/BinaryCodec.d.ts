@@ -2,14 +2,14 @@
 import { Field } from './Field';
 import { MutableBuffer } from './MutableBuffer';
 import { ReadState } from './ReadState';
-import { CoderType } from './CoderType';
+import { Type } from './Type';
 /** Types used in definitions */
-export type BinaryCodecDefinition = CoderType | [CoderType] | Object | Object[];
+export type BinaryCodecDefinition = Type | [Type] | Object | Object[];
 /**
  * A binary buffer encoder/decoder.
  */
 export declare class BinaryCodec<T = any> {
-    readonly type: CoderType;
+    readonly type: Type;
     readonly fields: Field[];
     readonly subBinaryCodec?: BinaryCodec<T>;
     constructor(type: BinaryCodecDefinition);

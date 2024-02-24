@@ -8,22 +8,102 @@ import uintValues from './uint.json';
 import intValues from './int.json';
 
 describe('types', function () {
-  it('should correctly convert uints', function () {
+  const coder = coders.uintCoder;
+
+  it('should correctly convert auto uints', function () {
     Object.keys(uintValues).forEach(function (rawValue) {
       const value = Number(rawValue)
-      var encoded = write(coders.uintCoder, value)
-      expect(encoded).toEqual(uintValues[value])
-      expect(read(encoded, coders.uintCoder)).toEqual(value)
-    })
+
+      const encoded = writeBuffer(coder, value);
+      const expected = uintValues[value];
+      expect(encoded.toString('hex')).toEqual(expected.hex);
+      expect(`${value}: ${encoded.byteLength}`).toEqual(`${value}: ${expected.bytes}`);
+
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
   })
 
-  it('should correctly convert ints', function () {
+  it('should correctly convert auto ints', function () {
+    const coder = coders.intCoder;
+
     Object.keys(intValues).forEach(function (rawValue) {
-      const value = Number(rawValue);
-      var encoded = write(coders.intCoder, value)
-      expect(encoded).toEqual(intValues[value])
-      expect(read(encoded, coders.intCoder)).toEqual(value)
-    })
+      const value = Number(rawValue)
+
+      const encoded = writeBuffer(coder, value);
+      const expected = intValues[value];
+      expect(encoded.toString('hex')).toEqual(expected.hex);
+      expect(`${value}: ${encoded.byteLength}`).toEqual(`${value}: ${expected.bytes}`);
+
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert int8', function () {
+    const coder = coders.int8Coder;
+    
+    [0, 1, 2, 100, 127, -1, -2, -100, -127].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(1);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert int16', function () {
+    const coder = coders.int16Coder;
+    
+    [0, 1, -1, 128, -128, 32_767, -32_767].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(2);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert int32', function () {
+    const coder = coders.int32Coder;
+    
+    [0, 1, -1, 32_767, -32_767, 32_768, -2_147_483_647, 2_147_483_647].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(4);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert uint8', function () {
+    const coder = coders.uint8Coder;
+    
+    [0, 1, 2, 100, 127, 254, 255].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(1);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert uint16', function () {
+    const coder = coders.uint16Coder;
+    
+    [0, 256, 65_535].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(2);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
+  })
+
+  it('should correctly convert uint32', function () {
+    const coder = coders.uint32Coder;
+    
+    [0, 255, 65_536, 4_294_967_295].forEach((value: number): void => {
+      const encoded = writeBuffer(coder, value);
+      expect(encoded.byteLength).toBe(4);
+      const decoded: number = readBuffer(coder, encoded);
+      expect(decoded).toEqual(value);
+    });
   })
 
   it('should be sound for double precision floats', function () {
@@ -87,6 +167,19 @@ describe('types', function () {
     check(coders.dateCoder, new Date)
   })
 })
+
+function writeBuffer<T>(coder: any, value: T): Buffer {
+  var data = new MutableBuffer();
+  coder.write(value, data, '')
+  return data.toBuffer()
+}
+
+function readBuffer<T>(coder: any, buffer: Buffer): T {
+  var state = new ReadState(buffer),
+    r = coder.read(state)
+  expect(state.hasEnded()).toBe(true);
+  return r
+}
 
 /**
  * @param {Object} type

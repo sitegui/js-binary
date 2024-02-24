@@ -2,16 +2,16 @@ import * as coders from './coders';
 import { Field } from './Field';
 import { MutableBuffer } from './MutableBuffer';
 import { ReadState } from './ReadState';
-import { CoderType } from './CoderType';
+import { Type } from './Type';
 
 /** Types used in definitions */
-export type BinaryCodecDefinition = CoderType | [CoderType] | Object | Object[];
+export type BinaryCodecDefinition = Type | [Type] | Object | Object[];
 
 /**
  * A binary buffer encoder/decoder.
  */
 export class BinaryCodec<T = any> {
-  readonly type: CoderType;
+  readonly type: Type;
   readonly fields: Field[]
   readonly subBinaryCodec?: BinaryCodec<T>;
   
@@ -21,10 +21,10 @@ export class BinaryCodec<T = any> {
         throw new TypeError('Invalid array type, it must have exactly one element')
       }
       
-      this.type = CoderType.ARRAY;
+      this.type = Type.Array;
       this.subBinaryCodec = new BinaryCodec(type[0]);
     } else if (typeof type === 'object') {
-      this.type = CoderType.OBJECT
+      this.type = Type.Object
       this.fields = Object.keys(type).map(function (name) {
         return new Field(name, type[name])
       })
@@ -64,10 +64,10 @@ export class BinaryCodec<T = any> {
   public write(value: { [x: string]: any; }, data: MutableBuffer, path: string) {
     var i: number, field: Field, subpath: any, subValue: any, len: number
     
-    if (this.type === CoderType.ARRAY) {
+    if (this.type === Type.Array) {
       // Array field
       return this._writeArray(value as any, data, path, this.subBinaryCodec)
-    } else if (this.type !== CoderType.OBJECT) {
+    } else if (this.type !== Type.Object) {
       // Simple type
       return coders.getCoder(this.type).write(value, data, path)
     }
@@ -155,9 +155,9 @@ export class BinaryCodec<T = any> {
       // AOxx xxxx
       hash.writeUInt8((this.type.charCodeAt(0) & 0x3f) | (array ? 0x80 : 0) | (isOptional ? 0x40 : 0))
       
-      if (this.type === CoderType.ARRAY) {
+      if (this.type === Type.Array) {
         hashType(type.subBinaryCodec, false, false)
-      } else if (this.type === CoderType.OBJECT) {
+      } else if (this.type === Type.Object) {
         coders.uintCoder.write(type.fields.length, hash)
         type.fields.forEach((f) => hashType(f.type, f.isArray, f.isOptional));
       }
@@ -174,11 +174,11 @@ export class BinaryCodec<T = any> {
   * @private
   */
   private _compileRead() {
-    if (this.type !== CoderType.OBJECT && this.type !== CoderType.ARRAY) {
+    if (this.type !== Type.Object && this.type !== Type.Array) {
       // Scalar type
       // In this case, there is no need to write custom code
       return coders.getCoder(this.type).read
-    } else if (this.type === CoderType.ARRAY) {
+    } else if (this.type === Type.Array) {
       return this._readArray.bind(this, this.subBinaryCodec)
     }
     

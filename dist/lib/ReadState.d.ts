@@ -12,6 +12,9 @@ export declare class ReadState {
     readUInt8(): number;
     readUInt16(): number;
     readUInt32(): number;
+    readInt8(): number;
+    readInt16(): number;
+    readInt32(): number;
     readFloat(): number;
     readDouble(): number;
     readBuffer(length: number): Buffer;
