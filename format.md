@@ -59,9 +59,6 @@ Either `true`, encoded as the byte `0x01`, or `false`, encoded as `0x00`.
 ### `json`
 Any JSON-compatible data. First the value is transformed in string by a JSON serialization algorithm (like `JSON.stringify`). The resulting string is the encoded as a `string` (see above).
 
-### `oid`
-A mongodb ObjectId, composed of 12 bytes. No encoding is actually needed, the 12 bytes are simply appended to the final result.
-
 ### `regex`
 A JS-compatible regular expression, composed of:
 
@@ -83,14 +80,14 @@ A compound type is an ordered sequence of `fields`. Each `field` has three prope
 For each `field` (following in order):
 
 1. if it's optional
-	1. if the value is `empty` (see bellow)
-		1. append the `boolean` `false`
-		2. continue to next field.
-	2. else
-		1. append the `boolean` `true`
+  1. if the value is `empty` (see bellow)
+    1. append the `boolean` `false`
+    2. continue to next field.
+  2. else
+    1. append the `boolean` `true`
 2. if it's a single value
-	1. append `value` encoded as defined by the field's `type`
-	2. continue to next field
+  1. append `value` encoded as defined by the field's `type`
+  2. continue to next field
 3. get the the array length `len`
 4. append `len` encoded as an `uint`
 5. append each `value` in the array, encoded as defined by the field's `type`

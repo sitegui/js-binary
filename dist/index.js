@@ -23,15 +23,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.coders = exports.Schema = exports.CoderType = exports.ReadState = exports.Field = exports.MutableBuffer = void 0;
+exports.coders = exports.BinaryCodec = exports.ReadState = exports.Field = exports.MutableBuffer = void 0;
 var MutableBuffer_1 = require("./lib/MutableBuffer");
 Object.defineProperty(exports, "MutableBuffer", { enumerable: true, get: function () { return MutableBuffer_1.MutableBuffer; } });
 var Field_1 = require("./lib/Field");
 Object.defineProperty(exports, "Field", { enumerable: true, get: function () { return Field_1.Field; } });
 var ReadState_1 = require("./lib/ReadState");
 Object.defineProperty(exports, "ReadState", { enumerable: true, get: function () { return ReadState_1.ReadState; } });
-var Schema_1 = require("./lib/Schema");
-Object.defineProperty(exports, "CoderType", { enumerable: true, get: function () { return Schema_1.CoderType; } });
-Object.defineProperty(exports, "Schema", { enumerable: true, get: function () { return Schema_1.Schema; } });
+var BinaryCodec_1 = require("./lib/BinaryCodec");
+Object.defineProperty(exports, "BinaryCodec", { enumerable: true, get: function () { return BinaryCodec_1.BinaryCodec; } });
 exports.coders = __importStar(require("./lib/coders"));
 //# sourceMappingURL=index.js.map

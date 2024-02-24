@@ -1,64 +1,104 @@
 # TypeScript Binary
 
-Fork of [sitegui/js-binary](https://github.com/sitegui/js-binary) updated to TypeScript, and with new types.
+Encode/decode custom binary formats from JavaScript, and much smaller and faster than JSON (or BSON).
 
-> Encode/decode to a custom binary format, much more compact and faster than JSON/BSON.
+This project is forked from the fantastic [sitegui/js-binary](https://github.com/sitegui/js-binary) library, written by [Guilherme Souza](https://github.com/sitegui). It works similarly to [Google's Protocol Buffers](https://protobuf.dev/), but with flexible support.
+
+Compatible with [geckos.io](https://github.com/geckosio/geckos.io) (which is like [socket.io](https://github.com/socketio/socket.io) over WebRTC Data Channels).
 
 ## Install
 `npm install typescript-binary`
 
+`yarn add typescript-binary`
+
+<detail>
+<summary><h3>Enable browser support (polyfill required)</h3></summary>
+
+You may also need to polyfill `Buffer`, if using in the browser.
+
+`npm install buffer --save-dev`
+
+For example, in Webpack:
+
+```js
+// webpack.config.js
+
+  /* ... */
+  resolve: {
+    fallback: {
+      buffer: require.resolve('buffer/'),
+    },
+    // ...
+  },
+  plugins: [
+    // Make sure 'buffer' is available.
+    new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+    // ...
+  ],
+  /* ... */
+```
+
+</detail>
+
 ## Goal
-This module is analogous to `JSON.stringify` and `JSON.parse`, but instead of a JSON string, the data is encoded to a custom binary format (using a Buffer instance to store the data).
-This format was designed to be very *compact* and give support for *more types* (like Date and Buffer).
 
-To reduce overhead in the format, it carries no information about types. This implies that you must define the data schema to encode/decode properly. Huge plus: this automatically validates the data against the given schema (*input sanitization for free!*). This binary format is well suited for very regular data, like API input/output.
+This module encodes and decodes data to your own custom binary formats (using Buffers), and is analogous to `JSON.stringify(...)` and `JSON.parse(...)`. The format was designed to be very compact and give support for complex types (including `Array`, `Date` and `Buffer`).
 
-Note that, since it's a binary format, it was not meant to be easily viewed/edited by hand.
+To reduce overhead in the format, it carries no information about types. This implies that you must use a shared data schema to encode/decode properly. Huge plus: this automatically validates the data against the given schema (*input sanitization for free!*). This binary format is well suited for very well-defined data, such as data packets for an online game.
+
+Note that, since it's a binary format, it is not meant to be easily viewed/edited by hand.
 
 ## Usage
 ```js
-const user = {
-	name: {
-		first: 'Guilherme',
-		last: 'Souza'
-	},
-	pass: Buffer.from('042697a30b2dafbdf91bf66bdacdcba8', 'hex'),
-	creationDate: new Date('2014-04-11T21:22:32.504Z'),
-	active: true,
-	achievements: [3, 14, 15, 92, 65, 35]
-}
+import { BinaryCodec } from 'typescript-binary';
 
-import { Schema } from 'typescript-binary';
-
-const UserSchema = new Schema({
-	name: {
-		first: 'string',
-		last: 'string'
-	},
-	pass: 'Buffer',
-	creationDate: 'date',
-	active: 'boolean',
-	achievements: ['uint'], // array of unsigned ints
-	'optionalField?': 'int',
+// Define:
+const UserCodec = new BinaryCodec<MyUserInterface>({
+  name: {
+    first: 'string',
+    last: 'string'
+  },
+  pass: 'Buffer',
+  creationDate: 'date',
+  active: 'boolean',
+  achievements: ['uint'], // array of unsigned integers
+  'optionalField?': 'int'
 });
 
-const encoded = UserSchema.encode(user);
-const decoded = UserSchema.decode(encoded);
+// Encode:
+const myUserBinary: Buffer = UserBinaryCodec.encode({
+  name: {
+    first: 'Guilherme',
+    last: 'Souza'
+  },
+  pass: Buffer.from('042697a30b2dafbdf91bf66bdacdcba8', 'hex'),
+  creationDate: new Date('2014-04-11T21:22:32.504Z'),
+  active: true,
+  achievements: [3, 14, 15, 92, 65, 35],
+});
+
+// Decode:
+const myUser: MyUserInterface = UserBinaryCodec.decode(myUserBinary);
 ```
 
 ## Available types
-### Basic types
-* 'uint': unsigned integer (between 0 and 2^53)
-* 'int': signed integer (between -2^53 and 2^53)
-* 'float32': a 32-bit floating-point
-* 'float64': a 64-bit floating-point (the JavaScript `number` type)
-* 'string': a utf-8 string
+### Primitive types
+* 'boolean': a boolean.
+* 'uint': unsigned integer (between 0 and 2^53). 
+* 'int': signed integer (between -2^53 and 2^53).
+* 'float32': a 32-bit precision floating-point number.
+* 'float64': a 64-bit precision floating-point number (this is typically the default for JavaScript's `number` type).
+* 'string': a UTF-8 encoded string.
+
+> `uint` and `int` use a custom coder that dynamically chooses the smallest encoding for the given value (e.g. 8-32 bytes).
+
+### Advanced types
 * 'Buffer': a Buffer instance
-* 'boolean': a boolean
-* 'regex': a JS RegExp instance
-* 'date': a JS Date instance
-* 'json': any data supported by [JSON format](http://json.org/). Read bellow for more
-* 'oid': mongodb ObjectId (see bellow)
+* 'regex': a JavaScript `RegExp` object
+* 'date': a JavaScript `Date` object
+* 'json': Any data supported by [JSON format](http://json.org/). See below for more details.
+* 'booleans': An array of booleans (any length), encoded with a 2-bit header.
+* 'bitmask8', 'bitmask16', and 'bitmask32': A fixed-length tuple of booleans, encoded as a `uint8`, `uint16` or `uint32`.
 
 ### Compound types
 A compound type is an object with (optional) fields. Those fields may be arrays, but with the restriction that every element has the same data schema.
@@ -79,17 +119,7 @@ Examples:
 * Object array: `[{v: 'int', f: 'string'}]`
 
 ### JSON type
-As stated before, the js-binary requires the data to have a rather strict schema. But sometimes, part of the data may not fit this reality. In this case, you can fallback to JSON :)
-
-Of course, a JSON field will miss the point about space efficiency and data validation, but will gain in flexibility.
-
-### ObjectId type
-js-binary gives first-class support for mongodb ObjectId. But since js-binary doesn't (and shouldn't) depend on any peculiar mongodb driver, the rules for this type are:
-
-* Encoding: any object `o` is accepted, as long `Buffer.from(String(o), 'hex')` yields a 12-byte Buffer
-* Decoding: returns a 24-char hex-encoded string
-
-This should be compatible with most ObjectId implementations on the wild
+As stated before, `typescript-binary` requires the data to have a rather strict schema. But sometimes, part of the data may not fit this reality. In this case, you can fallback to JSON. You will lose the core benefits of binary, but you will gain flexibility.
 
 ## Spec
 The binary format spec is documented in the [FORMAT.md](./FORMAT.md) file

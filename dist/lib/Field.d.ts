@@ -1,10 +1,11 @@
-import { CoderType, Schema } from './Schema';
+import { BinaryCodec } from './BinaryCodec';
+import { CoderType } from './CoderType';
 /**
  * Parse and represent an object field. See example in Type.js
  */
 export declare class Field {
     readonly name: string;
-    readonly type: Schema;
+    readonly type: BinaryCodec;
     readonly isOptional: boolean;
     readonly isArray: boolean;
     constructor(name: string, type: CoderType);

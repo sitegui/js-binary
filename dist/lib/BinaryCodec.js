@@ -23,41 +23,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Schema = exports.CoderType = void 0;
+exports.BinaryCodec = void 0;
 const coders = __importStar(require("./coders"));
 const Field_1 = require("./Field");
 const MutableBuffer_1 = require("./MutableBuffer");
 const ReadState_1 = require("./ReadState");
-var CoderType;
-(function (CoderType) {
-    CoderType["UINT"] = "uint";
-    CoderType["INT"] = "int";
-    CoderType["FLOAT_32"] = "float32";
-    CoderType["FLOAT_64"] = "float64";
-    CoderType["STRING"] = "string";
-    CoderType["BUFFER"] = "Buffer";
-    CoderType["BOOLEAN"] = "boolean";
-    CoderType["JSON"] = "json";
-    CoderType["OID"] = "oid";
-    CoderType["REGEX"] = "regex";
-    CoderType["DATE"] = "date";
-    CoderType["ARRAY"] = "[array]";
-    CoderType["OBJECT"] = "{object}";
-})(CoderType = exports.CoderType || (exports.CoderType = {}));
 /**
- * Create a Schema, given a definition.
+ * A binary buffer encoder/decoder.
  */
-class Schema {
+class BinaryCodec {
     constructor(type) {
         if (Array.isArray(type)) {
             if (type.length !== 1) {
                 throw new TypeError('Invalid array type, it must have exactly one element');
             }
-            this.type = CoderType.ARRAY;
-            this.subSchema = new Schema(type[0]);
+            this.type = "[array]" /* CoderType.ARRAY */;
+            this.subBinaryCodec = new BinaryCodec(type[0]);
         }
         else if (typeof type === 'object') {
-            this.type = CoderType.OBJECT;
+            this.type = "{object}" /* CoderType.OBJECT */;
             this.fields = Object.keys(type).map(function (name) {
                 return new Field_1.Field(name, type[name]);
             });
@@ -70,8 +54,8 @@ class Schema {
         }
     }
     /**
-     * @param {*} value
-     * @return {Buffer}
+     * Encode data to binary.
+     *
      * @throws if the value is invalid
      */
     encode(value) {
@@ -80,26 +64,26 @@ class Schema {
         return data.toBuffer();
     }
     /**
-     * @param {Buffer} buffer
-     * @return {*}
-     * @throws if fails
+     * Decode data.
+     *
+     * @throws if fails (e.g. binary data is incompatible with schema).
      */
     decode(buffer) {
         return this.read(new ReadState_1.ReadState(buffer));
     }
     /**
-     * @param {*} value
-     * @param {MutableBuffer} data
-     * @param {string} path
-     * @throws if the value is invalid
-     */
+    * @param {*} value
+    * @param {MutableBuffer} data
+    * @param {string} path
+    * @throws if the value is invalid
+    */
     write(value, data, path) {
         var i, field, subpath, subValue, len;
-        if (this.type === CoderType.ARRAY) {
+        if (this.type === "[array]" /* CoderType.ARRAY */) {
             // Array field
-            return this._writeArray(value, data, path, this.subSchema);
+            return this._writeArray(value, data, path, this.subBinaryCodec);
         }
-        else if (this.type !== CoderType.OBJECT) {
+        else if (this.type !== "{object}" /* CoderType.OBJECT */) {
             // Simple type
             return coders.getCoder(this.type).write(value, data, path);
         }
@@ -132,13 +116,13 @@ class Schema {
         }
     }
     /**
-     * @param {*} value
-     * @param {MutableBuffer} data
-     * @param {string} path
-     * @param {Schema} type
-     * @throws if the value is invalid
-     * @private
-     */
+    * @param {*} value
+    * @param {MutableBuffer} data
+    * @param {string} path
+    * @param {BinaryCodec} type
+    * @throws if the value is invalid
+    * @private
+    */
     _writeArray(value, data, path, type) {
         var i, len;
         if (!Array.isArray(value)) {
@@ -151,37 +135,37 @@ class Schema {
         }
     }
     /**
-     * This funciton will be executed only the first time
-     * After that, we'll compile the read routine and add it directly to the instance
-     * @param {ReadState} state
-     * @return {*}
-     * @throws if fails
-     */
+    * This funciton will be executed only the first time
+    * After that, we'll compile the read routine and add it directly to the instance
+    * @param {ReadState} state
+    * @return {*}
+    * @throws if fails
+    */
     read(state) {
         this.read = this._compileRead();
         return this.read(state);
     }
     /**
-     * Return a signature for this type. Two types that resolve to the same hash can be said as equivalents
-     * @return {Buffer}
-     */
+    * Return a signature for this type. Two types that resolve to the same hash can be said as equivalents
+    * @return {Buffer}
+    */
     getHash() {
         var hash = new MutableBuffer_1.MutableBuffer;
         hashType(this, false, false);
         return hash.toBuffer();
         /**
-         * @param {Schema} type
-         * @param {boolean} array
-         * @param {boolean} optional
-         */
+        * @param {BinaryCodec} type
+        * @param {boolean} array
+        * @param {boolean} optional
+        */
         function hashType(type, array, isOptional) {
             // Write type (first char + flags)
             // AOxx xxxx
             hash.writeUInt8((this.type.charCodeAt(0) & 0x3f) | (array ? 0x80 : 0) | (isOptional ? 0x40 : 0));
-            if (this.type === CoderType.ARRAY) {
-                hashType(type.subSchema, false, false);
+            if (this.type === "[array]" /* CoderType.ARRAY */) {
+                hashType(type.subBinaryCodec, false, false);
             }
-            else if (this.type === CoderType.OBJECT) {
+            else if (this.type === "{object}" /* CoderType.OBJECT */) {
                 coders.uintCoder.write(type.fields.length, hash);
                 type.fields.forEach((f) => hashType(f.type, f.isArray, f.isOptional));
             }
@@ -191,18 +175,18 @@ class Schema {
         return coders.booleanCoder.read(state);
     }
     /**
-     * Compile the decode method for this object
-     * @return {function(ReadState):*}
-     * @private
-     */
+    * Compile the decode method for this object
+    * @return {function(ReadState):*}
+    * @private
+    */
     _compileRead() {
-        if (this.type !== CoderType.OBJECT && this.type !== CoderType.ARRAY) {
+        if (this.type !== "{object}" /* CoderType.OBJECT */ && this.type !== "[array]" /* CoderType.ARRAY */) {
             // Scalar type
             // In this case, there is no need to write custom code
             return coders.getCoder(this.type).read;
         }
-        else if (this.type === CoderType.ARRAY) {
-            return this._readArray.bind(this, this.subSchema);
+        else if (this.type === "[array]" /* CoderType.ARRAY */) {
+            return this._readArray.bind(this, this.subBinaryCodec);
         }
         // As an example, compiling code to new Type({a:'int', 'b?':['string']}) will result in:
         // return {
@@ -228,12 +212,12 @@ class Schema {
         return new Function('state', code);
     }
     /**
-     * @param {Schema} type
-     * @param {ReadState} state
-     * @return {Array}
-     * @throws - if invalid
-     * @private
-     */
+    * @param {BinaryCodec} type
+    * @param {ReadState} state
+    * @return {Array}
+    * @throws - if invalid
+    * @private
+    */
     _readArray(type, state) {
         var arr = new Array(coders.uintCoder.read(state)), j;
         for (j = 0; j < arr.length; j++) {
@@ -242,6 +226,6 @@ class Schema {
         return arr;
     }
 }
-exports.Schema = Schema;
-exports.default = Schema;
-//# sourceMappingURL=Schema.js.map
+exports.BinaryCodec = BinaryCodec;
+exports.default = BinaryCodec;
+//# sourceMappingURL=BinaryCodec.js.map

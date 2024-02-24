@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Field = void 0;
-const Schema_1 = require("./Schema");
+const BinaryCodec_1 = require("./BinaryCodec");
 /**
  * Parse and represent an object field. See example in Type.js
  */
@@ -23,7 +23,7 @@ class Field {
         else {
             this.isArray = false;
         }
-        this.type = new Schema_1.Schema(type);
+        this.type = new BinaryCodec_1.BinaryCodec(type);
     }
 }
 exports.Field = Field;
