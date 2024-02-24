@@ -50,19 +50,19 @@ Note that, since it's a binary format, it is not meant to be easily viewed/edite
 
 ## Usage
 ```js
-import { BinaryCodec } from 'typescript-binary';
+import { BinaryCodec, Type } from 'typescript-binary';
 
 // Define:
 const UserCodec = new BinaryCodec<MyUserInterface>({
   name: {
-    first: 'string',
-    last: 'string'
+    first: Type.String,
+    last: Type.String
   },
-  pass: 'Buffer',
-  creationDate: 'date',
-  active: 'boolean',
-  achievements: ['uint'], // array of unsigned integers
-  'optionalField?': 'int'
+  pass: Type.Buffer,
+  creationDate: Type.Date,
+  active: Type.Boolean,
+  achievements: [Type.UInt], // array of unsigned integers
+  'optionalField?': Type.Int
 });
 
 // Encode:
@@ -81,20 +81,21 @@ const myUserBinary: Buffer = UserBinaryCodec.encode({
 const myUser: MyUserInterface = UserBinaryCodec.decode(myUserBinary);
 ```
 
-## Available types
-### Primitive types
-* `Type.UInt`: unsigned integer (between 0 and `Number.MAX_SAFE_INTEGER`),
+## Types
+
+### Primitives
 * `Type.Int`: signed integer (between `-Number.MAX_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER`).
-* `Type.UInt8`, `Type.UInt16`, `Type.UInt32`: unsigned integers (1, 2 or 4 bytes).
+* `Type.UInt`: unsigned integer (between 0 and `Number.MAX_SAFE_INTEGER`),
 * `Type.Int8`, `Type.Int16`, `Type.Int32`: signed integers (1, 2 or 4 bytes).
+* `Type.UInt8`, `Type.UInt16`, `Type.UInt32`: unsigned integers (1, 2 or 4 bytes).
 * `Type.Float`: a 32-bit precision floating-point number.
 * `Type.Double`: a 64-bit precision floating-point number (this is default for JavaScript's `number` type).
 * `Type.String`: a UTF-8 encoded string.
 * `Type.Boolean`: a boolean.
 
-> `uint` and `int` use a custom coder that dynamically chooses an encoding for the given value (e.g. 1-8 bytes). See [Type.Int](https://github.com/reececomo/typescript-binary/blob/main/src/lib/Type.ts) for limits.
+> `Type.UInt` and `Type.Int` will dynamically encode values as 1, 2, 4, or 8 bytes. See [Type.Int](https://github.com/reececomo/typescript-binary/blob/main/src/lib/Type.ts) for limits.
 
-### Advanced types
+### Advanced
 * `Type.BooleanArray`: A packed array of booleans (any length), encoded together (you can pack many booleans into one byte).
 * `Type.Buffer`: a Buffer instance
 * `Type.RegExp`: a JavaScript `RegExp` object
